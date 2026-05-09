@@ -62,7 +62,7 @@ With lazy.nvim:
     {
       '<leader>pt',
       function()
-        require('kyme').pick()
+        require('kyme').pick_task()
       end,
       desc = 'Pick task',
     },
@@ -82,7 +82,7 @@ require('kyme').setup({
 })
 
 vim.keymap.set('n', '<leader>pt', function()
-  require('kyme').pick()
+  require('kyme').pick_task()
 end, { desc = 'Pick task' })
 ~~~
 
@@ -107,7 +107,8 @@ A picker selects one or more tasks.
 ~~~lua
 ---@class kyme.PickerProvider
 ---@field name string
----@field pick fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
+---@field pick_task fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
+---@field pick_execution? fun(executions: kyme.Execution[], actions: kyme.ExecutionPickerActions)
 ~~~
 
 ### RunnerProvider
@@ -117,7 +118,7 @@ A runner executes a selected task.
 ~~~lua
 ---@class kyme.RunnerProvider
 ---@field name string
----@field execute fun(task: kyme.Task, ctx: kyme.ExecutionCtx)
+---@field start fun(task: kyme.Task, ctx: kyme.ExecutionCtx, hooks: kyme.RunnerHooks): kyme.ExecutionHandle
 ~~~
 
 ## Task Shape
