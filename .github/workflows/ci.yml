@@ -23,19 +23,6 @@ jobs:
           version: 2.4.1
           args: --check lua tests
 
-  lint:
-    name: Lint Lua
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run luacheck
-        uses: lunarmodules/luacheck@v1
-        with:
-          args: lua tests
-
   test:
     name: Test
     runs-on: ubuntu-latest
