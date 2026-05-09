@@ -4,6 +4,8 @@ A small provider-based task runner for Neovim.
 
 Kyme keeps the core thin: sources collect tasks, pickers let you choose one or more tasks, and runners execute the selected tasks.
 
+日本語版: [README.ja.md](README.ja.md)
+
 ## Features
 
 - Provider-based task collection, selection, and execution
@@ -12,6 +14,23 @@ Kyme keeps the core thin: sources collect tasks, pickers let you choose one or m
 - Built-in toggleterm.nvim runner provider
 - argv-style task commands
 - Markdown preview for task descriptions and commands
+
+## Philosophy
+
+Kyme is built as a configurable task runner with few core dependencies.
+
+The core idea is to avoid hard-coding one picker, one terminal, or one task format into the plugin. Kyme defines provider interfaces for task collection, task selection, and task execution.
+
+This means:
+
+- Keep the core independent from optional UI and terminal plugins
+- Let users use their own fuzzy finder through a picker provider
+- Run tasks in the background
+- Keep error parsing and quickfix integration outside the core runner flow
+- Define a source provider interface so tasks from different formats can be added
+- Keep window and status UI decisions outside the core
+
+The current built-in providers are `mise` as a source, `snacks.nvim` as a picker, and `toggleterm.nvim` as a runner.
 
 ## Requirements
 
@@ -145,4 +164,4 @@ The preview shows the task description and command in Markdown.
 
 ### toggleterm Runner
 
-Runs tasks through toggleterm.nvim without opening the terminal window immediately. It sends a notification when a task starts. A future UI can expose running tasks and open their terminal output on demand.
+Runs tasks through toggleterm.nvim without opening the terminal window immediately. It sends a notification when a task starts.
