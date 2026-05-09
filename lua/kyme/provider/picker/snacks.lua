@@ -111,7 +111,7 @@ end
 ---@return table
 local function to_execution_item(execution)
 	return {
-		text = ("#%s [%s] %s"):format(execution.id, execution.status, execution.task.name),
+		text = ("#%s %s"):format(execution.id, execution.task.name),
 		execution_id = execution.id,
 		execution = execution,
 		preview = {
@@ -127,15 +127,15 @@ local function execution_format(item)
 	local execution = item.execution
 	local source = execution.task.source and execution.task.source.provider or ""
 	local icon = source_icons[source]
+	local icon_hl = status_hl[execution.status] or "Special"
 	local ret = {}
 
 	if icon then
-		ret[#ret + 1] = { icon, "Special" }
+		ret[#ret + 1] = { icon, icon_hl }
 		ret[#ret + 1] = { " " }
 	end
 
 	ret[#ret + 1] = { ("#%s "):format(execution.id), "SnacksPickerIdx" }
-	ret[#ret + 1] = { ("[%s] "):format(execution.status), status_hl[execution.status] }
 	ret[#ret + 1] = { execution.task.name }
 
 	return ret

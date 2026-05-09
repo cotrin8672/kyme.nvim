@@ -116,7 +116,7 @@ return {
 		end,
 	},
 	{
-		name = "snacks execution picker prefixes mise icon and highlights status",
+		name = "snacks execution picker prefixes mise icon and colors it by status",
 		fn = function()
 			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
 
@@ -140,12 +140,11 @@ return {
 				})
 
 				local item = captured().items[1]
-				h.same("#1 [running] build", item.text)
+				h.same("#1 build", item.text)
 				h.same({
-					{ "󰦕", "Special" },
+					{ "󰦕", "DiagnosticInfo" },
 					{ " " },
 					{ "#1 ", "SnacksPickerIdx" },
-					{ "[running] ", "DiagnosticInfo" },
 					{ "build" },
 				}, captured().format(item))
 			end)
@@ -173,7 +172,7 @@ return {
 		end,
 	},
 	{
-		name = "snacks execution picker maps terminal statuses to highlights",
+		name = "snacks execution picker maps terminal statuses to icon highlights",
 		fn = function()
 			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
 
@@ -182,17 +181,32 @@ return {
 					{
 						id = "1",
 						status = "succeeded",
-						task = { id = "test:ok", name = "ok", command = { "echo", "ok" } },
+						task = {
+							id = "mise:ok",
+							name = "ok",
+							command = { "mise", "run", "ok" },
+							source = { provider = "mise" },
+						},
 					},
 					{
 						id = "2",
 						status = "failed",
-						task = { id = "test:fail", name = "fail", command = { "false" } },
+						task = {
+							id = "mise:fail",
+							name = "fail",
+							command = { "mise", "run", "fail" },
+							source = { provider = "mise" },
+						},
 					},
 					{
 						id = "3",
 						status = "stopped",
-						task = { id = "test:stop", name = "stop", command = { "sleep", "10" } },
+						task = {
+							id = "mise:stop",
+							name = "stop",
+							command = { "mise", "run", "stop" },
+							source = { provider = "mise" },
+						},
 					},
 				}, {
 					open = function() end,
@@ -200,12 +214,9 @@ return {
 				})
 
 				local opts = captured()
-				h.same("[succeeded] ", opts.format(opts.items[1])[2][1])
-				h.same("DiagnosticOk", opts.format(opts.items[1])[2][2])
-				h.same("[failed] ", opts.format(opts.items[2])[2][1])
-				h.same("DiagnosticError", opts.format(opts.items[2])[2][2])
-				h.same("[stopped] ", opts.format(opts.items[3])[2][1])
-				h.same("DiagnosticWarn", opts.format(opts.items[3])[2][2])
+				h.same("DiagnosticOk", opts.format(opts.items[1])[1][2])
+				h.same("DiagnosticError", opts.format(opts.items[2])[1][2])
+				h.same("DiagnosticWarn", opts.format(opts.items[3])[1][2])
 			end)
 		end,
 	},
