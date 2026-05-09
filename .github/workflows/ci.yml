@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  stylua:
+    name: Check Lua formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: 2.4.1
+          args: --check lua
+
+  lint:
+    name: Lint Lua
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run luacheck
+        uses: lunarmodules/luacheck@v1
+        with:
+          args: lua
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+
+      - name: Smoke test plugin load
+        run: |
+          nvim --headless -u NONE -i NONE \
+            -c "set runtimepath^=${{ github.workspace }}" \
+            -c "lua require('kyme')" \
+            -c "qa"
+
+      - name: Run test suite
+        run: |
+          if [ -x ./scripts/test ]; then
+            ./scripts/test
+          elif [ -f Makefile ] && grep -qE '^[[:space:]]*test:' Makefile; then
+            make test
+          else
+            echo "No test suite configured yet."
+          fi
