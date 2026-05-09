@@ -165,3 +165,12 @@ The preview shows the task description and command in Markdown.
 ### toggleterm Runner
 
 Runs tasks through toggleterm.nvim without opening the terminal window immediately. It sends a notification when a task starts.
+
+## TODO
+
+These items are still rough roadmap notes and may change as the plugin evolves.
+
+- Manage running tasks through the same provider-oriented model
+- Expand CI and automated test coverage
+- Add hooks for task lifecycle events such as start, completion, and failure
+- Split preview generation into a more independent provider interface
