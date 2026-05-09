@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+set -eu
+
+nvim --headless -u NONE -i NONE \
+  -c "set runtimepath^=$(pwd)" \
+  -c "lua require('tests.run')" \
+  -c "qa"
