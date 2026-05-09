@@ -40,11 +40,36 @@ local function preview_text(task)
 	return table.concat(lines, "\n")
 end
 
+local source_icons = {
+	mise = "󰦕",
+}
+
+local status_hl = {
+	running = "DiagnosticInfo",
+	succeeded = "DiagnosticOk",
+	failed = "DiagnosticError",
+	stopped = "DiagnosticWarn",
+}
+
+---@param source string
+---@param name string
+---@return string
+local function task_text(source, name)
+	if source == "" then
+		return name
+	end
+
+	local text = ("%s: %s"):format(source, name)
+	local icon = source_icons[source]
+
+	return icon and ("%s %s"):format(icon, text) or text
+end
+
 ---@param task kyme.Task
 ---@return table
 local function to_item(task)
 	local source = task.source and task.source.provider or ""
-	local text = source ~= "" and ("%s: %s"):format(source, task.name) or task.name
+	local text = task_text(source, task.name)
 
 	return {
 		text = text,
@@ -88,11 +113,32 @@ local function to_execution_item(execution)
 	return {
 		text = ("#%s [%s] %s"):format(execution.id, execution.status, execution.task.name),
 		execution_id = execution.id,
+		execution = execution,
 		preview = {
 			text = execution_preview_text(execution),
 			ft = "markdown",
 		},
 	}
+end
+
+---@param item table
+---@return table[]
+local function execution_format(item)
+	local execution = item.execution
+	local source = execution.task.source and execution.task.source.provider or ""
+	local icon = source_icons[source]
+	local ret = {}
+
+	if icon then
+		ret[#ret + 1] = { icon, "Special" }
+		ret[#ret + 1] = { " " }
+	end
+
+	ret[#ret + 1] = { ("#%s "):format(execution.id), "SnacksPickerIdx" }
+	ret[#ret + 1] = { ("[%s] "):format(execution.status), status_hl[execution.status] }
+	ret[#ret + 1] = { execution.task.name }
+
+	return ret
 end
 
 ---@param item table
@@ -173,7 +219,7 @@ function M.create(spec)
 			Snacks.picker(vim.tbl_deep_extend("force", {
 				title = opts.execution_title or "Kyme Executions",
 				items = items,
-				format = "text",
+				format = execution_format,
 				preview = "preview",
 				confirm = function(picker, item)
 					confirm_execution(picker, item, actions)

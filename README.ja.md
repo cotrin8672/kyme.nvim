@@ -158,7 +158,7 @@ mise tasks --json
 snacks.nvim でタスクを表示します。item は次の形式で表示されます。
 
 ~~~text
-mise: task-name
+󰦕 mise: task-name
 ~~~
 
 preview にはタスクの説明と command が Markdown で表示されます。
