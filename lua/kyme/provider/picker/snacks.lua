@@ -150,7 +150,7 @@ end
 ---@param picker table
 ---@param item table?
 ---@param done fun(result?: kyme.PickerResult)
-local function confirm(picker, item, done)
+local function confirm_task(picker, item, done)
 	local selected = picker:selected({ fallback = true })
 	local tasks = {}
 
@@ -187,6 +187,88 @@ local function confirm_execution(picker, item, actions)
 	end
 end
 
+---@param picker table
+---@param item table?
+---@param actions kyme.ExecutionPickerActions
+local function stop_execution(picker, item, actions)
+	local selected = picker:selected({ fallback = true })
+	local stopped = {}
+
+	for _, selected_item in ipairs(selected) do
+		local execution_id = item_execution_id(selected_item)
+		if execution_id and not stopped[execution_id] then
+			stopped[execution_id] = true
+			actions.stop(execution_id)
+		end
+	end
+
+	if not next(stopped) then
+		local execution_id = item_execution_id(item)
+		if execution_id then
+			actions.stop(execution_id)
+		end
+	end
+end
+
+---@param opts table
+---@return string
+local function execution_stop_key(opts)
+	return opts.execution_stop_key or "<M-s>"
+end
+
+---@param tasks kyme.Task[]
+---@param done fun(result?: kyme.PickerResult)
+---@param opts table
+---@return table
+local function task_picker_source(tasks, done, opts)
+	return vim.tbl_deep_extend("force", {
+		source = "kyme_tasks",
+		title = opts.title or "Kyme Tasks",
+		items = vim.tbl_map(to_item, tasks),
+		format = "text",
+		preview = "preview",
+		confirm = function(picker, item)
+			confirm_task(picker, item, done)
+		end,
+	}, opts.picker or {})
+end
+
+---@param executions kyme.Execution[]
+---@param actions kyme.ExecutionPickerActions
+---@param opts table
+---@return table
+local function execution_picker_source(executions, actions, opts)
+	local stop_key = execution_stop_key(opts)
+
+	return vim.tbl_deep_extend("force", {
+		source = "kyme_executions",
+		title = opts.execution_title or "Kyme Executions",
+		items = vim.tbl_map(to_execution_item, executions),
+		format = execution_format,
+		preview = "preview",
+		confirm = function(picker, item)
+			confirm_execution(picker, item, actions)
+		end,
+		actions = {
+			stop_execution = function(picker, item)
+				stop_execution(picker, item, actions)
+			end,
+		},
+		win = {
+			input = {
+				keys = {
+					[stop_key] = { "stop_execution", mode = { "n", "i" } },
+				},
+			},
+			list = {
+				keys = {
+					[stop_key] = "stop_execution",
+				},
+			},
+		},
+	}, opts.execution_picker or {})
+end
+
 ---@param spec kyme.ProviderSpec<kyme.PickerProvider>
 ---@return kyme.PickerProvider
 function M.create(spec)
@@ -198,53 +280,13 @@ function M.create(spec)
 		---@param tasks kyme.Task[]
 		---@param done fun(result?: kyme.PickerResult)
 		pick_task = function(tasks, done)
-			local items = vim.tbl_map(to_item, tasks)
-
-			Snacks.picker(vim.tbl_deep_extend("force", {
-				title = opts.title or "Kyme Tasks",
-				items = items,
-				format = "text",
-				preview = "preview",
-				confirm = function(picker, item)
-					confirm(picker, item, done)
-				end,
-			}, opts.picker or {}))
+			Snacks.picker(task_picker_source(tasks, done, opts))
 		end,
 
 		---@param executions kyme.Execution[]
 		---@param actions kyme.ExecutionPickerActions
 		pick_execution = function(executions, actions)
-			local items = vim.tbl_map(to_execution_item, executions)
-
-			Snacks.picker(vim.tbl_deep_extend("force", {
-				title = opts.execution_title or "Kyme Executions",
-				items = items,
-				format = execution_format,
-				preview = "preview",
-				confirm = function(picker, item)
-					confirm_execution(picker, item, actions)
-				end,
-				actions = {
-					stop_execution = function(_, item)
-						local execution_id = item_execution_id(item)
-						if execution_id then
-							actions.stop(execution_id)
-						end
-					end,
-				},
-				win = {
-					input = {
-						keys = {
-							["s"] = { "stop_execution", mode = { "n", "i" } },
-						},
-					},
-					list = {
-						keys = {
-							["s"] = "stop_execution",
-						},
-					},
-				},
-			}, opts.execution_picker or {}))
+			Snacks.picker(execution_picker_source(executions, actions, opts))
 		end,
 	}
 end

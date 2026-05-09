@@ -21,6 +21,18 @@ local function with_snacks_picker(fn)
 	end
 end
 
+local function execution(id)
+	return {
+		id = id,
+		status = "running",
+		task = {
+			id = "test:" .. id,
+			name = "task-" .. id,
+			command = { "echo", id },
+		},
+	}
+end
+
 return {
 	{
 		name = "snacks picker prefixes mise tasks with icon",
@@ -40,6 +52,27 @@ return {
 				}, function() end)
 
 				h.same("󰦕 mise: build", captured().items[1].text)
+			end)
+		end,
+	},
+	{
+		name = "snacks task picker uses kyme task source config",
+		fn = function()
+			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+
+			with_snacks_picker(function(captured)
+				provider.pick_task({
+					{
+						id = "custom",
+						name = "custom",
+						command = { "echo", "custom" },
+					},
+				}, function() end)
+
+				h.same("kyme_tasks", captured().source)
+				h.same("text", captured().format)
+				h.same("preview", captured().preview)
+				h.truthy(captured().confirm)
 			end)
 		end,
 	},
@@ -119,6 +152,27 @@ return {
 		end,
 	},
 	{
+		name = "snacks execution picker uses kyme execution source config",
+		fn = function()
+			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+
+			with_snacks_picker(function(captured)
+				provider.pick_execution({
+					execution("1"),
+				}, {
+					open = function() end,
+					stop = function() end,
+				})
+
+				h.same("kyme_executions", captured().source)
+				h.same("preview", captured().preview)
+				h.truthy(captured().format)
+				h.truthy(captured().confirm)
+				h.truthy(captured().actions.stop_execution)
+			end)
+		end,
+	},
+	{
 		name = "snacks execution picker maps terminal statuses to highlights",
 		fn = function()
 			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
@@ -152,6 +206,120 @@ return {
 				h.same("DiagnosticError", opts.format(opts.items[2])[2][2])
 				h.same("[stopped] ", opts.format(opts.items[3])[2][1])
 				h.same("DiagnosticWarn", opts.format(opts.items[3])[2][2])
+			end)
+		end,
+	},
+	{
+		name = "snacks execution picker uses meta-s as default stop key",
+		fn = function()
+			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+
+			with_snacks_picker(function(captured)
+				provider.pick_execution({
+					{
+						id = "1",
+						status = "running",
+						task = { id = "test:ok", name = "ok", command = { "echo", "ok" } },
+					},
+				}, {
+					open = function() end,
+					stop = function() end,
+				})
+
+				h.same({ "stop_execution", mode = { "n", "i" } }, captured().win.input.keys["<M-s>"])
+				h.same("stop_execution", captured().win.list.keys["<M-s>"])
+				h.same(nil, captured().win.input.keys.s)
+				h.same(nil, captured().win.list.keys.s)
+			end)
+		end,
+	},
+	{
+		name = "snacks execution picker allows custom stop key",
+		fn = function()
+			local provider = require("kyme.provider.picker.snacks").create({
+				"snacks",
+				opts = {
+					execution_stop_key = "<C-s>",
+				},
+			})
+
+			with_snacks_picker(function(captured)
+				provider.pick_execution({
+					{
+						id = "1",
+						status = "running",
+						task = { id = "test:ok", name = "ok", command = { "echo", "ok" } },
+					},
+				}, {
+					open = function() end,
+					stop = function() end,
+				})
+
+				h.same({ "stop_execution", mode = { "n", "i" } }, captured().win.input.keys["<C-s>"])
+				h.same("stop_execution", captured().win.list.keys["<C-s>"])
+				h.same(nil, captured().win.input.keys["<M-s>"])
+				h.same(nil, captured().win.list.keys["<M-s>"])
+			end)
+		end,
+	},
+	{
+		name = "snacks execution picker stops selected executions",
+		fn = function()
+			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local stopped = {}
+
+			with_snacks_picker(function(captured)
+				provider.pick_execution({
+					execution("1"),
+					execution("2"),
+					execution("3"),
+				}, {
+					open = function() end,
+					stop = function(execution_id)
+						table.insert(stopped, execution_id)
+					end,
+				})
+
+				local opts = captured()
+				local picker = {
+					selected = function()
+						return { opts.items[1], opts.items[3], opts.items[3] }
+					end,
+				}
+
+				opts.actions.stop_execution(picker, opts.items[2])
+
+				h.same({ "1", "3" }, stopped)
+			end)
+		end,
+	},
+	{
+		name = "snacks execution picker stop action falls back to current item",
+		fn = function()
+			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local stopped = {}
+
+			with_snacks_picker(function(captured)
+				provider.pick_execution({
+					execution("1"),
+					execution("2"),
+				}, {
+					open = function() end,
+					stop = function(execution_id)
+						table.insert(stopped, execution_id)
+					end,
+				})
+
+				local opts = captured()
+				local picker = {
+					selected = function()
+						return {}
+					end,
+				}
+
+				opts.actions.stop_execution(picker, opts.items[2])
+
+				h.same({ "2" }, stopped)
 			end)
 		end,
 	},

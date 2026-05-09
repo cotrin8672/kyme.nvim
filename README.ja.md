@@ -163,6 +163,17 @@ snacks.nvim でタスクを表示します。item は次の形式で表示され
 
 preview にはタスクの説明と command が Markdown で表示されます。
 
+execution picker の stop key はデフォルトで `<M-s>` です。複数選択されている場合は選択中の execution をすべて止め、未選択の場合は現在 item に fallback します。次のように変更できます。
+
+~~~lua
+picker = {
+  'snacks',
+  opts = {
+    execution_stop_key = '<C-s>',
+  },
+}
+~~~
+
 ### toggleterm Runner
 
 toggleterm.nvim を使って、terminal window を即座に開かずにタスクを実行します。タスク開始時には通知を送ります。

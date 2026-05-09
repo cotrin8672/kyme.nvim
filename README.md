@@ -163,6 +163,17 @@ Shows tasks with snacks.nvim. Items are displayed as:
 
 The preview shows the task description and command in Markdown.
 
+Execution picker stop key defaults to `<M-s>`. It stops all selected executions, falling back to the current item when nothing is selected. You can override it with:
+
+~~~lua
+picker = {
+  'snacks',
+  opts = {
+    execution_stop_key = '<C-s>',
+  },
+}
+~~~
+
 ### toggleterm Runner
 
 Runs tasks through toggleterm.nvim without opening the terminal window immediately. It sends a notification when a task starts.
