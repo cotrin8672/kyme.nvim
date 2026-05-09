@@ -158,10 +158,21 @@ mise tasks --json
 Shows tasks with snacks.nvim. Items are displayed as:
 
 ~~~text
-mise: task-name
+󰦕 mise: task-name
 ~~~
 
 The preview shows the task description and command in Markdown.
+
+Execution picker stop key defaults to `<M-s>`. It stops all selected executions, falling back to the current item when nothing is selected. You can override it with:
+
+~~~lua
+picker = {
+  'snacks',
+  opts = {
+    execution_stop_key = '<C-s>',
+  },
+}
+~~~
 
 ### toggleterm Runner
 

@@ -9,6 +9,7 @@ package.path = table.concat({
 
 local specs = {
 	"tests.source_mise_spec",
+	"tests.picker_snacks_spec",
 	"tests.execution_spec",
 }
 
