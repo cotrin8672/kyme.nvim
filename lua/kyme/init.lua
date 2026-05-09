@@ -10,8 +10,12 @@ function M.collect(done)
 	require("kyme.core").collect(done)
 end
 
-function M.pick()
-	require("kyme.core").pick()
+function M.pick_task()
+	require("kyme.core").pick_task()
+end
+
+function M.pick_execution()
+	require("kyme.executions").pick_execution()
 end
 
 return M

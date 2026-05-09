@@ -16,7 +16,9 @@ function M.create(spec)
 
 		---@param task kyme.Task
 		---@param ctx kyme.ExecutionCtx
-		execute = function(task, ctx)
+		---@param hooks kyme.RunnerHooks
+		---@return kyme.ExecutionHandle
+		start = function(task, ctx, hooks)
 			local Terminal = require("toggleterm.terminal").Terminal
 
 			local term = Terminal:new(vim.tbl_deep_extend("force", {
@@ -25,10 +27,22 @@ function M.create(spec)
 				hidden = true,
 				direction = "float",
 				display_name = task.name,
+				on_exit = function(_, _, code)
+					hooks.on_exit(code)
+				end,
 			}, opts.terminal or {}))
 
-			vim.notify(("Started task: %s"):format(task.name), vim.log.levels.INFO)
 			term:spawn()
+
+			return {
+				open = function()
+					term:open()
+				end,
+
+				stop = function()
+					term:shutdown()
+				end,
+			}
 		end,
 	}
 end

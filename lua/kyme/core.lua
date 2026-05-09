@@ -4,6 +4,12 @@ local resolver = require("kyme.resolver")
 
 local M = {}
 
+---@return string
+local function next_execution_id()
+	state.next_execution_id = state.next_execution_id + 1
+	return tostring(state.next_execution_id)
+end
+
 ---@return kyme.ExecutionCtx
 local function makeExecuteCtx()
 	return {
@@ -21,16 +27,60 @@ function M.setup(opts)
 	state.runnerProvider = resolver.runner(cfg.runner)
 end
 
-function M.pick()
+---@param task kyme.Task
+---@return kyme.Execution?
+function M.run(task)
+	local execution = {
+		id = next_execution_id(),
+		task = task,
+		status = "running",
+		started_at = os.time(),
+	}
+
+	local ctx = makeExecuteCtx()
+
+	local ok, handle_or_err = pcall(function()
+		return state.runnerProvider.start(task, ctx, {
+			on_exit = function(code)
+				vim.schedule(function()
+					execution.ended_at = os.time()
+					execution.exit_code = code
+
+					if execution._stopping then
+						execution.status = "stopped"
+					elseif code == 0 then
+						execution.status = "succeeded"
+					else
+						execution.status = "failed"
+					end
+				end)
+			end,
+		})
+	end)
+
+	if not ok then
+		vim.notify(("kyme: failed to start task %s: %s"):format(task.name, handle_or_err), vim.log.levels.ERROR)
+		return nil
+	end
+
+	execution._handle = handle_or_err
+	state.executions[execution.id] = execution
+	table.insert(state.execution_order, execution.id)
+
+	vim.notify(("Started %s"):format(task.name), vim.log.levels.INFO)
+
+	return execution
+end
+
+function M.pick_task()
 	M.collect(function(tasks)
-		state.pickerProvider.pick(tasks, function(result)
+		state.pickerProvider.pick_task(tasks, function(result)
 			if not result then
 				return
 			end
 
-			local ctx = makeExecuteCtx()
 			for _, task in ipairs(result.tasks) do
-				state.runnerProvider.execute(task, ctx)
+				M.run(task)
 			end
 		end)
 	end)

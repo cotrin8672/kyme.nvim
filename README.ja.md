@@ -64,7 +64,7 @@ lazy.nvim の例:
     {
       '<leader>pt',
       function()
-        require('kyme').pick()
+        require('kyme').pick_task()
       end,
       desc = 'Pick task',
     },
@@ -84,7 +84,7 @@ require('kyme').setup({
 })
 
 vim.keymap.set('n', '<leader>pt', function()
-  require('kyme').pick()
+  require('kyme').pick_task()
 end, { desc = 'Pick task' })
 ~~~
 
@@ -109,7 +109,8 @@ picker は 1 つ以上のタスクを選択します。
 ~~~lua
 ---@class kyme.PickerProvider
 ---@field name string
----@field pick fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
+---@field pick_task fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
+---@field pick_execution? fun(executions: kyme.Execution[], actions: kyme.ExecutionPickerActions)
 ~~~
 
 ### RunnerProvider
@@ -119,7 +120,7 @@ runner は選択されたタスクを実行します。
 ~~~lua
 ---@class kyme.RunnerProvider
 ---@field name string
----@field execute fun(task: kyme.Task, ctx: kyme.ExecutionCtx)
+---@field start fun(task: kyme.Task, ctx: kyme.ExecutionCtx, hooks: kyme.RunnerHooks): kyme.ExecutionHandle
 ~~~
 
 ## Task Shape
