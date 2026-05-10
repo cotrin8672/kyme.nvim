@@ -16,6 +16,7 @@ local function reset_state()
 	state.sourceProviders = {}
 	state.pickerProvider = nil
 	state.runnerProvider = nil
+	state.visualProvider = nil
 	state.executions = {}
 	state.execution_order = {}
 	state.next_execution_id = 0
@@ -54,6 +55,7 @@ return {
 			local source = kyme.mise({ source = true })
 			local picker = kyme.snacks({ picker = true })
 			local runner = kyme.toggleterm({ runner = true })
+			local visual = kyme.default_visual({ visual = true })
 
 			h.same(require("kyme.provider.source.mise"), source.module)
 			h.same({ source = true }, source.opts)
@@ -61,6 +63,8 @@ return {
 			h.same({ picker = true }, picker.opts)
 			h.same(require("kyme.provider.runner.toggleterm"), runner.module)
 			h.same({ runner = true }, runner.opts)
+			h.same(require("kyme.provider.visual.default"), visual.module)
+			h.same({ visual = true }, visual.opts)
 		end,
 	},
 	{
@@ -71,6 +75,7 @@ return {
 			local source_opts
 			local picker_opts
 			local runner_opts
+			local visual_opts
 
 			local source_provider = {
 				name = "source",
@@ -85,6 +90,12 @@ return {
 			local runner_provider = {
 				name = "runner",
 				start = function() end,
+			}
+			local visual_provider = {
+				task_item = function() end,
+				task_preview = function() end,
+				execution_item = function() end,
+				execution_preview = function() end,
 			}
 
 			core.setup({
@@ -117,14 +128,25 @@ return {
 					},
 					opts = { runner = true },
 				},
+				visual = {
+					module = {
+						create = function(opts)
+							visual_opts = opts
+							return visual_provider
+						end,
+					},
+					opts = { visual = true },
+				},
 			})
 
 			h.same({ source = true }, source_opts)
 			h.same({ picker = true }, picker_opts)
 			h.same({ runner = true }, runner_opts)
+			h.same({ visual = true }, visual_opts)
 			h.same({ source_provider }, state.sourceProviders)
 			h.same(picker_provider, state.pickerProvider)
 			h.same(runner_provider, state.runnerProvider)
+			h.same(visual_provider, state.visualProvider)
 		end,
 	},
 	{
@@ -321,6 +343,7 @@ return {
 				},
 			}
 			state.execution_order = { "1" }
+			state.visualProvider = require("kyme.provider.visual.default").create()
 			state.pickerProvider = {
 				name = "test",
 				pick_execution = function(items, actions)
@@ -333,7 +356,9 @@ return {
 			with_vim_stubs(function()
 				executions.pick_execution()
 
-				h.same(state.executions["1"], picked[1])
+				h.same(state.executions["1"], picked[1].execution)
+				h.truthy(picked[1].visual)
+				h.truthy(picked[1].preview)
 				h.same(true, open_called)
 				h.same(true, stop_called)
 			end)

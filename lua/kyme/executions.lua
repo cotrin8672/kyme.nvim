@@ -2,6 +2,17 @@ local state = require("kyme.state")
 
 local M = {}
 
+---@param visual kyme.VisualProvider
+---@param execution kyme.Execution
+---@return kyme.PickerExecutionItem
+local function make_execution_item(visual, execution)
+	return {
+		execution = execution,
+		visual = visual.execution_item(execution),
+		preview = visual.execution_preview(execution),
+	}
+end
+
 ---@return kyme.Execution[]
 function M.list()
 	local executions = {}
@@ -69,7 +80,11 @@ function M.pick_execution()
 		return
 	end
 
-	picker.pick_execution(M.list(), {
+	local items = vim.tbl_map(function(execution)
+		return make_execution_item(state.visualProvider, execution)
+	end, M.list())
+
+	picker.pick_execution(items, {
 		open = function(id)
 			local ok, err = M.open(id)
 			if not ok and err then

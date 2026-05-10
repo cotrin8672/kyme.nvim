@@ -86,16 +86,6 @@ return {
 					provider = "mise",
 					path = "mise.toml",
 				},
-				preview = {
-					lines = { "cargo build" },
-					ft = "sh",
-				},
-				metadata = {
-					name = "build",
-					description = "Build project",
-					source = "mise.toml",
-					run = { "cargo build" },
-				},
 			}, tasks[1])
 		end,
 	},

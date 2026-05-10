@@ -18,6 +18,12 @@ function M.toggleterm(opts)
 	return require("kyme.provider").factory(require("kyme.provider.runner.toggleterm"), opts)
 end
 
+---@param opts? table
+---@return kyme.ProviderFactory<kyme.VisualProvider>
+function M.default_visual(opts)
+	return require("kyme.provider").factory(require("kyme.provider.visual.default"), opts)
+end
+
 ---@param opts kyme.Config
 function M.setup(opts)
 	require("kyme.core").setup(opts)

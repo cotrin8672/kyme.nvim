@@ -1,24 +1,16 @@
 ---@class kyme.Task
 ---@field id string
 ---@field name string
----@field command string[] argv-style command
 ---@field desc? string
+---@field command string[] argv-style command
 ---@field source? kyme.TaskSource
----@field preview? kyme.TaskPreview
----@field tags? string[]
----@field metadata? table
 
 ---@class kyme.TaskSource
 ---@field provider string
 ---@field path? string
 ---@field line? integer
 
----@class kyme.TaskPreview
----@field lines? string[]
----@field ft? string
-
 ---@class kyme.ProviderBase
----@field name string
 
 ---@class kyme.SourceProvider: kyme.ProviderBase
 ---@field collect fun(done: fun(tasks: kyme.Task[]))
@@ -35,8 +27,35 @@
 ---@field on_exit fun(code: integer)
 
 ---@class kyme.PickerProvider: kyme.ProviderBase
----@field pick_task fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
----@field pick_execution? fun(executions: kyme.Execution[], actions: kyme.ExecutionPickerActions)
+---@field pick_task fun(items: kyme.PickerTaskItem[], done: fun(result?: kyme.PickerResult))
+---@field pick_execution? fun(items: kyme.PickerExecutionItem[], actions: kyme.ExecutionPickerActions)
+
+---@class kyme.VisualProvider: kyme.ProviderBase
+---@field task_item fun(task: kyme.Task): kyme.VisualItem
+---@field task_preview fun(task: kyme.Task): kyme.VisualPreview?
+---@field execution_item fun(task: kyme.Execution): kyme.VisualItem
+---@field execution_preview fun(task: kyme.Execution): kyme.VisualPreview?
+
+---@class kyme.VisualItem
+---@field chunks kyme.VisualChunk[]
+
+---@class kyme.VisualChunk
+---@field text string
+---@field hl? string
+
+---@class kyme.VisualPreview
+---@field lines string[]
+---@field ft? string
+
+---@class kyme.PickerTaskItem
+---@field task kyme.Task
+---@field visual kyme.VisualItem
+---@field preview? kyme.VisualPreview
+
+---@class kyme.PickerExecutionItem
+---@field execution kyme.Execution
+---@field visual kyme.VisualItem
+---@field preview? kyme.VisualPreview
 
 ---@class kyme.ExecutionPickerActions
 ---@field open fun(id: string)
@@ -76,3 +95,4 @@
 ---@field sources kyme.ProviderFactory<kyme.SourceProvider>[]
 ---@field picker kyme.ProviderFactory<kyme.PickerProvider>?
 ---@field runner kyme.ProviderFactory<kyme.RunnerProvider>?
+---@field visual kyme.ProviderFactory<kyme.VisualProvider>?

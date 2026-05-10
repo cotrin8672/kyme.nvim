@@ -3,6 +3,17 @@ local config = require("kyme.config")
 
 local M = {}
 
+---@param visual kyme.VisualProvider
+---@param task kyme.Task
+---@return kyme.PickerTaskItem
+local function make_task_item(visual, task)
+	return {
+		task = task,
+		visual = visual.task_item(task),
+		preview = visual.task_preview(task),
+	}
+end
+
 ---@return string
 local function next_execution_id()
 	state.next_execution_id = state.next_execution_id + 1
@@ -24,6 +35,11 @@ function M.setup(opts)
 	local cfg = config.get()
 	state.pickerProvider = cfg.picker.module.create(cfg.picker.opts)
 	state.runnerProvider = cfg.runner.module.create(cfg.runner.opts)
+	if cfg.visual then
+		state.visualProvider = cfg.visual.module.create(cfg.visual.opts)
+	else
+		state.visualProvider = require("kyme.provider.visual.default").create()
+	end
 	state.sourceProviders = {}
 
 	for _, sourceFactory in ipairs(cfg.sources) do
@@ -79,7 +95,11 @@ end
 
 function M.pick_task()
 	M.collect(function(tasks)
-		state.pickerProvider.pick_task(tasks, function(result)
+		local items = vim.tbl_map(function(task)
+			return make_task_item(state.visualProvider, task)
+		end, tasks)
+
+		state.pickerProvider.pick_task(items, function(result)
 			if not result then
 				return
 			end

@@ -1,83 +1,38 @@
 local M = {}
 
----@param command string[]
+---@param chunks kyme.VisualChunk[]
 ---@return string
-local function command_text(command)
-	return table.concat(command, " ")
-end
+local function chunks_text(chunks)
+	local parts = {}
 
----@param task kyme.Task
----@return string
-local function preview_text(task)
-	local lines = {
-		("# %s"):format(task.name),
-		"",
-	}
-
-	if task.desc and task.desc ~= "" then
-		vim.list_extend(lines, {
-			"## Description",
-			task.desc,
-			"",
-		})
+	for _, chunk in ipairs(chunks) do
+		parts[#parts + 1] = chunk.text
 	end
 
-	vim.list_extend(lines, {
-		"## Command",
-		"```sh",
-		command_text(task.command),
-		"```",
-	})
-
-	if task.preview and task.preview.lines and #task.preview.lines > 0 then
-		vim.list_extend(lines, {
-			"",
-			"## Details",
-		})
-		vim.list_extend(lines, task.preview.lines)
-	end
-
-	return table.concat(lines, "\n")
+	return table.concat(parts)
 end
 
-local source_icons = {
-	mise = "󰦕",
-}
-
-local status_hl = {
-	running = "DiagnosticInfo",
-	succeeded = "DiagnosticOk",
-	failed = "DiagnosticError",
-	stopped = "DiagnosticWarn",
-}
-
----@param source string
----@param name string
----@return string
-local function task_text(source, name)
-	if source == "" then
-		return name
+---@param preview? kyme.VisualPreview
+---@return table?
+local function to_preview(preview)
+	if not preview then
+		return nil
 	end
-
-	local text = ("%s: %s"):format(source, name)
-	local icon = source_icons[source]
-
-	return icon and ("%s %s"):format(icon, text) or text
-end
-
----@param task kyme.Task
----@return table
-local function to_item(task)
-	local source = task.source and task.source.provider or ""
-	local text = task_text(source, task.name)
 
 	return {
-		text = text,
-		task = task,
-		preview = {
-			text = preview_text(task),
-			ft = "markdown",
-		},
+		text = table.concat(preview.lines, "\n"),
+		ft = preview.ft,
+	}
+end
+
+---@param item kyme.PickerTaskItem
+---@return table
+local function to_item(item)
+	return {
+		text = chunks_text(item.visual.chunks),
+		task = item.task,
+		visual = item.visual,
+		preview = to_preview(item.preview),
 	}
 end
 
@@ -87,56 +42,30 @@ local function item_task(item)
 	return item and item.task or nil
 end
 
----@param execution kyme.Execution
----@return string
-local function execution_preview_text(execution)
-	local lines = {
-		("# %s"):format(execution.task.name),
-		"",
-		"## Execution",
-		("- ID: %s"):format(execution.id),
-		("- Status: %s"):format(execution.status),
-		("- Exit code: %s"):format(execution.exit_code ~= nil and tostring(execution.exit_code) or "-"),
-		"",
-		"## Command",
-		"```sh",
-		command_text(execution.task.command),
-		"```",
-	}
-
-	return table.concat(lines, "\n")
-end
-
----@param execution kyme.Execution
+---@param item kyme.PickerExecutionItem
 ---@return table
-local function to_execution_item(execution)
+local function to_execution_item(item)
 	return {
-		text = ("#%s %s"):format(execution.id, execution.task.name),
-		execution_id = execution.id,
-		execution = execution,
-		preview = {
-			text = execution_preview_text(execution),
-			ft = "markdown",
-		},
+		text = chunks_text(item.visual.chunks),
+		execution_id = item.execution.id,
+		execution = item.execution,
+		visual = item.visual,
+		preview = to_preview(item.preview),
 	}
 end
 
 ---@param item table
 ---@return table[]
-local function execution_format(item)
-	local execution = item.execution
-	local source = execution.task.source and execution.task.source.provider or ""
-	local icon = source_icons[source]
-	local icon_hl = status_hl[execution.status] or "Special"
+local function item_format(item)
 	local ret = {}
 
-	if icon then
-		ret[#ret + 1] = { icon, icon_hl }
-		ret[#ret + 1] = { " " }
+	for _, chunk in ipairs(item.visual.chunks) do
+		if chunk.hl then
+			ret[#ret + 1] = { chunk.text, chunk.hl }
+		else
+			ret[#ret + 1] = { chunk.text }
+		end
 	end
-
-	ret[#ret + 1] = { ("#%s "):format(execution.id), "SnacksPickerIdx" }
-	ret[#ret + 1] = { execution.task.name }
 
 	return ret
 end
@@ -216,16 +145,16 @@ local function execution_stop_key(opts)
 	return opts.execution_stop_key or "<M-s>"
 end
 
----@param tasks kyme.Task[]
+---@param items kyme.PickerTaskItem[]
 ---@param done fun(result?: kyme.PickerResult)
 ---@param opts table
 ---@return table
-local function task_picker_source(tasks, done, opts)
+local function task_picker_source(items, done, opts)
 	return vim.tbl_deep_extend("force", {
 		source = "kyme_tasks",
 		title = opts.title or "Kyme Tasks",
-		items = vim.tbl_map(to_item, tasks),
-		format = "text",
+		items = vim.tbl_map(to_item, items),
+		format = item_format,
 		preview = "preview",
 		confirm = function(picker, item)
 			confirm_task(picker, item, done)
@@ -233,18 +162,18 @@ local function task_picker_source(tasks, done, opts)
 	}, opts.picker or {})
 end
 
----@param executions kyme.Execution[]
+---@param items kyme.PickerExecutionItem[]
 ---@param actions kyme.ExecutionPickerActions
 ---@param opts table
 ---@return table
-local function execution_picker_source(executions, actions, opts)
+local function execution_picker_source(items, actions, opts)
 	local stop_key = execution_stop_key(opts)
 
 	return vim.tbl_deep_extend("force", {
 		source = "kyme_executions",
 		title = opts.execution_title or "Kyme Executions",
-		items = vim.tbl_map(to_execution_item, executions),
-		format = execution_format,
+		items = vim.tbl_map(to_execution_item, items),
+		format = item_format,
 		preview = "preview",
 		confirm = function(picker, item)
 			confirm_execution(picker, item, actions)
@@ -275,18 +204,16 @@ function M.create(opts)
 	opts = opts or {}
 
 	return {
-		name = "snacks",
-
-		---@param tasks kyme.Task[]
+		---@param items kyme.PickerTaskItem[]
 		---@param done fun(result?: kyme.PickerResult)
-		pick_task = function(tasks, done)
-			Snacks.picker(task_picker_source(tasks, done, opts))
+		pick_task = function(items, done)
+			Snacks.picker(task_picker_source(items, done, opts))
 		end,
 
-		---@param executions kyme.Execution[]
+		---@param items kyme.PickerExecutionItem[]
 		---@param actions kyme.ExecutionPickerActions
-		pick_execution = function(executions, actions)
-			Snacks.picker(execution_picker_source(executions, actions, opts))
+		pick_execution = function(items, actions)
+			Snacks.picker(execution_picker_source(items, actions, opts))
 		end,
 	}
 end
