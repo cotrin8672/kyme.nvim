@@ -46,20 +46,24 @@ Kyme は特定の picker、terminal、task format を core に固定せず、タ
 
 lazy.nvim の例:
 
-~~~lua
+```lua
 {
   'cotrin8672/kyme.nvim',
   dependencies = {
     'folke/snacks.nvim',
     'akinsho/toggleterm.nvim',
   },
-  opts = {
-    sources = {
-      { 'mise' },
-    },
-    picker = { 'snacks' },
-    runner = { 'toggleterm' },
-  },
+  opts = function()
+    local kyme = require('kyme')
+
+    return {
+      sources = {
+        kyme.mise(),
+      },
+      picker = kyme.snacks(),
+      runner = kyme.toggleterm(),
+    }
+  end,
   keys = {
     {
       '<leader>pt',
@@ -70,23 +74,25 @@ lazy.nvim の例:
     },
   },
 }
-~~~
+```
 
 ## 使い方
 
-~~~lua
-require('kyme').setup({
+```lua
+local kyme = require('kyme')
+
+kyme.setup({
   sources = {
-    { 'mise' },
+    kyme.mise(),
   },
-  picker = { 'snacks' },
-  runner = { 'toggleterm' },
+  picker = kyme.snacks(),
+  runner = kyme.toggleterm(),
 })
 
 vim.keymap.set('n', '<leader>pt', function()
-  require('kyme').pick_task()
+  kyme.pick_task()
 end, { desc = 'Pick task' })
-~~~
+```
 
 ## Provider Model
 
@@ -96,36 +102,36 @@ Kyme には 3 種類の provider があります。
 
 source はタスクを非同期に収集します。
 
-~~~lua
+```lua
 ---@class kyme.SourceProvider
 ---@field name string
 ---@field collect fun(done: fun(tasks: kyme.Task[]))
-~~~
+```
 
 ### PickerProvider
 
 picker は 1 つ以上のタスクを選択します。
 
-~~~lua
+```lua
 ---@class kyme.PickerProvider
 ---@field name string
 ---@field pick_task fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
 ---@field pick_execution? fun(executions: kyme.Execution[], actions: kyme.ExecutionPickerActions)
-~~~
+```
 
 ### RunnerProvider
 
 runner は選択されたタスクを実行します。
 
-~~~lua
+```lua
 ---@class kyme.RunnerProvider
 ---@field name string
 ---@field start fun(task: kyme.Task, ctx: kyme.ExecutionCtx, hooks: kyme.RunnerHooks): kyme.ExecutionHandle
-~~~
+```
 
 ## Task Shape
 
-~~~lua
+```lua
 ---@class kyme.Task
 ---@field id string
 ---@field name string
@@ -135,13 +141,13 @@ runner は選択されたタスクを実行します。
 ---@field preview? kyme.TaskPreview
 ---@field tags? string[]
 ---@field metadata? table
-~~~
+```
 
 `command` は常に argv 形式です。provider は shell string ではなく、次のような構造化された command を返すことを推奨します。
 
-~~~lua
+```lua
 { 'mise', 'run', 'build' }
-~~~
+```
 
 ## 組み込み Provider
 
@@ -149,30 +155,27 @@ runner は選択されたタスクを実行します。
 
 次のコマンドからタスクを収集します。
 
-~~~sh
+```sh
 mise tasks --json
-~~~
+```
 
 ### snacks Picker
 
 snacks.nvim でタスクを表示します。item は次の形式で表示されます。
 
-~~~text
+```text
 󰦕 mise: task-name
-~~~
+```
 
 preview にはタスクの説明と command が Markdown で表示されます。
 
 execution picker の stop key はデフォルトで `<M-s>` です。複数選択されている場合は選択中の execution をすべて止め、未選択の場合は現在 item に fallback します。次のように変更できます。
 
-~~~lua
-picker = {
-  'snacks',
-  opts = {
-    execution_stop_key = '<C-s>',
-  },
-}
-~~~
+```lua
+picker = require('kyme').snacks({
+  execution_stop_key = '<C-s>',
+})
+```
 
 ### toggleterm Runner
 

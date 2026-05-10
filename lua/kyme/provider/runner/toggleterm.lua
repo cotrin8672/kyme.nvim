@@ -6,13 +6,13 @@ local function shell_command(command)
 	return table.concat(vim.tbl_map(vim.fn.shellescape, command), " ")
 end
 
----@param spec kyme.ProviderSpec<kyme.RunnerProvider>
+---@param opts? table
 ---@return kyme.RunnerProvider
-function M.create(spec)
-	local opts = spec.opts or {}
+function M.create(opts)
+	opts = opts or {}
 
 	return {
-		name = spec[1],
+		name = "toggleterm",
 
 		---@param task kyme.Task
 		---@param ctx kyme.ExecutionCtx

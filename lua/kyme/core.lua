@@ -1,6 +1,5 @@
 local state = require("kyme.state")
 local config = require("kyme.config")
-local resolver = require("kyme.resolver")
 
 local M = {}
 
@@ -23,8 +22,14 @@ function M.setup(opts)
 	config.set(opts)
 
 	local cfg = config.get()
-	state.pickerProvider = resolver.picker(cfg.picker)
-	state.runnerProvider = resolver.runner(cfg.runner)
+	state.pickerProvider = cfg.picker.module.create(cfg.picker.opts)
+	state.runnerProvider = cfg.runner.module.create(cfg.runner.opts)
+	state.sourceProviders = {}
+
+	for _, sourceFactory in ipairs(cfg.sources) do
+		local sourceProvider = sourceFactory.module.create(sourceFactory.opts)
+		table.insert(state.sourceProviders, sourceProvider)
+	end
 end
 
 ---@param task kyme.Task
@@ -90,7 +95,7 @@ end
 function M.collect(done)
 	state.tasks = {}
 
-	local sources = config.get().sources
+	local sources = state.sourceProviders
 	if #sources == 0 then
 		if done then
 			done(state.tasks)
@@ -108,11 +113,8 @@ function M.collect(done)
 		end
 	end
 
-	for _, sourceSpecs in ipairs(sources) do
-		---@type kyme.SourceProvider
-		local source = resolver.source(sourceSpecs)
-
-		source.collect(function(tasks)
+	for _, sourceProvider in ipairs(sources) do
+		sourceProvider.collect(function(tasks)
 			vim.list_extend(state.tasks, tasks or {})
 			finish()
 		end)
