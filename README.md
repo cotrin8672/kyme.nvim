@@ -32,6 +32,8 @@ This means:
 
 The current built-in providers are `mise` as a source, `snacks.nvim` as a picker, and `toggleterm.nvim` as a runner.
 
+Kyme keeps a small execution registry so background tasks can be listed, opened, and stopped through picker providers. Error parsing, quickfix integration, and richer status UI are still left outside the core runner flow.
+
 ## Requirements
 
 - Neovim 0.10+
@@ -191,6 +193,6 @@ Runs tasks through toggleterm.nvim without opening the terminal window immediate
 
 These items are still rough roadmap notes and may change as the plugin evolves.
 
-- Manage running tasks through the same provider-oriented model
+- Add optional quickfix/status integrations on top of the current provider-oriented execution model
 - Expand CI and automated test coverage
 - Add hooks for task lifecycle events such as start, completion, and failure

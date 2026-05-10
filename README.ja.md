@@ -32,7 +32,7 @@ Kyme は特定の picker、terminal、task format を core に固定せず、タ
 
 現在の組み込み provider は、`mise` source、`snacks.nvim` picker、`toggleterm.nvim` runner です。
 
-バックグラウンドタスクの状態表示、一覧表示、quickfix 連携などは現在 core には含めていません。
+Kyme は小さな execution registry を持ち、バックグラウンドタスクを picker provider 経由で一覧表示、open、stop できます。エラー parse、quickfix 連携、より高度な状態 UI は core の実行フローには固定していません。
 
 ## 必要要件
 
@@ -191,6 +191,6 @@ toggleterm.nvim を使って、terminal window を即座に開かずにタスク
 
 以下はまだ大まかなロードマップであり、今後の設計にあわせて変更される可能性があります。
 
-- 実行中タスクの管理も、現在の provider 指向のモデルと同じように扱えるようにする
+- 現在の provider 指向の execution model の上に、任意の quickfix / status 連携を追加できるようにする
 - CI と自動テストを拡充する
 - タスクの開始、完了、失敗などのライフサイクルイベントに対するフックを指定できるようにする
