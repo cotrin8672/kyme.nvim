@@ -38,7 +38,7 @@ local function with_mise_system(result, fn)
 end
 
 local function collect(stdout)
-	local provider = require("kyme.provider.source.mise").create({ "mise" })
+	local provider = require("kyme.provider.source.mise").create()
 	local collected
 
 	with_mise_system({
@@ -139,7 +139,7 @@ return {
 	{
 		name = "mise source returns no tasks and notifies on command failure",
 		fn = function()
-			local provider = require("kyme.provider.source.mise").create({ "mise" })
+			local provider = require("kyme.provider.source.mise").create()
 			local collected
 
 			with_mise_system({

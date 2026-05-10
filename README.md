@@ -44,20 +44,24 @@ The current built-in providers are `mise` as a source, `snacks.nvim` as a picker
 
 With lazy.nvim:
 
-~~~lua
+```lua
 {
   'cotrin8672/kyme.nvim',
   dependencies = {
     'folke/snacks.nvim',
     'akinsho/toggleterm.nvim',
   },
-  opts = {
-    sources = {
-      { 'mise' },
-    },
-    picker = { 'snacks' },
-    runner = { 'toggleterm' },
-  },
+  opts = function()
+    local kyme = require('kyme')
+
+    return {
+      sources = {
+        kyme.mise(),
+      },
+      picker = kyme.snacks(),
+      runner = kyme.toggleterm(),
+    }
+  end,
   keys = {
     {
       '<leader>pt',
@@ -68,23 +72,25 @@ With lazy.nvim:
     },
   },
 }
-~~~
+```
 
 ## Usage
 
-~~~lua
-require('kyme').setup({
+```lua
+local kyme = require('kyme')
+
+kyme.setup({
   sources = {
-    { 'mise' },
+    kyme.mise(),
   },
-  picker = { 'snacks' },
-  runner = { 'toggleterm' },
+  picker = kyme.snacks(),
+  runner = kyme.toggleterm(),
 })
 
 vim.keymap.set('n', '<leader>pt', function()
-  require('kyme').pick_task()
+  kyme.pick_task()
 end, { desc = 'Pick task' })
-~~~
+```
 
 ## Provider Model
 
@@ -94,36 +100,36 @@ Kyme has three provider types.
 
 A source collects tasks and returns them asynchronously.
 
-~~~lua
+```lua
 ---@class kyme.SourceProvider
 ---@field name string
 ---@field collect fun(done: fun(tasks: kyme.Task[]))
-~~~
+```
 
 ### PickerProvider
 
 A picker selects one or more tasks.
 
-~~~lua
+```lua
 ---@class kyme.PickerProvider
 ---@field name string
 ---@field pick_task fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
 ---@field pick_execution? fun(executions: kyme.Execution[], actions: kyme.ExecutionPickerActions)
-~~~
+```
 
 ### RunnerProvider
 
 A runner executes a selected task.
 
-~~~lua
+```lua
 ---@class kyme.RunnerProvider
 ---@field name string
 ---@field start fun(task: kyme.Task, ctx: kyme.ExecutionCtx, hooks: kyme.RunnerHooks): kyme.ExecutionHandle
-~~~
+```
 
 ## Task Shape
 
-~~~lua
+```lua
 ---@class kyme.Task
 ---@field id string
 ---@field name string
@@ -133,13 +139,13 @@ A runner executes a selected task.
 ---@field preview? kyme.TaskPreview
 ---@field tags? string[]
 ---@field metadata? table
-~~~
+```
 
 command is always argv-style. Providers should prefer structured commands like:
 
-~~~lua
+```lua
 { 'mise', 'run', 'build' }
-~~~
+```
 
 instead of shell strings.
 
@@ -149,30 +155,27 @@ instead of shell strings.
 
 Collects tasks from:
 
-~~~sh
+```sh
 mise tasks --json
-~~~
+```
 
 ### snacks Picker
 
 Shows tasks with snacks.nvim. Items are displayed as:
 
-~~~text
+```text
 󰦕 mise: task-name
-~~~
+```
 
 The preview shows the task description and command in Markdown.
 
 Execution picker stop key defaults to `<M-s>`. It stops all selected executions, falling back to the current item when nothing is selected. You can override it with:
 
-~~~lua
-picker = {
-  'snacks',
-  opts = {
-    execution_stop_key = '<C-s>',
-  },
-}
-~~~
+```lua
+picker = require('kyme').snacks({
+  execution_stop_key = '<C-s>',
+})
+```
 
 ### toggleterm Runner
 

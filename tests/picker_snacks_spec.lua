@@ -37,7 +37,7 @@ return {
 	{
 		name = "snacks picker prefixes mise tasks with icon",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
@@ -58,7 +58,7 @@ return {
 	{
 		name = "snacks task picker uses kyme task source config",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
@@ -79,7 +79,7 @@ return {
 	{
 		name = "snacks picker keeps non-mise source labels unchanged",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
@@ -100,7 +100,7 @@ return {
 	{
 		name = "snacks picker keeps tasks without source unchanged",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
@@ -118,7 +118,7 @@ return {
 	{
 		name = "snacks execution picker prefixes mise icon and colors it by status",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
@@ -153,7 +153,7 @@ return {
 	{
 		name = "snacks execution picker uses kyme execution source config",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
@@ -174,7 +174,7 @@ return {
 	{
 		name = "snacks execution picker maps terminal statuses to icon highlights",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
@@ -223,7 +223,7 @@ return {
 	{
 		name = "snacks execution picker uses meta-s as default stop key",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
@@ -248,10 +248,7 @@ return {
 		name = "snacks execution picker allows custom stop key",
 		fn = function()
 			local provider = require("kyme.provider.picker.snacks").create({
-				"snacks",
-				opts = {
-					execution_stop_key = "<C-s>",
-				},
+				execution_stop_key = "<C-s>",
 			})
 
 			with_snacks_picker(function(captured)
@@ -276,7 +273,7 @@ return {
 	{
 		name = "snacks execution picker stops selected executions",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 			local stopped = {}
 
 			with_snacks_picker(function(captured)
@@ -307,7 +304,7 @@ return {
 	{
 		name = "snacks execution picker stop action falls back to current item",
 		fn = function()
-			local provider = require("kyme.provider.picker.snacks").create({ "snacks" })
+			local provider = require("kyme.provider.picker.snacks").create()
 			local stopped = {}
 
 			with_snacks_picker(function(captured)

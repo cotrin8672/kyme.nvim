@@ -1,5 +1,23 @@
 local M = {}
 
+---@param opts? table
+---@return kyme.ProviderFactory<kyme.SourceProvider>
+function M.mise(opts)
+	return require("kyme.provider").factory(require("kyme.provider.source.mise"), opts)
+end
+
+---@param opts? table
+---@return kyme.ProviderFactory<kyme.PickerProvider>
+function M.snacks(opts)
+	return require("kyme.provider").factory(require("kyme.provider.picker.snacks"), opts)
+end
+
+---@param opts? table
+---@return kyme.ProviderFactory<kyme.RunnerProvider>
+function M.toggleterm(opts)
+	return require("kyme.provider").factory(require("kyme.provider.runner.toggleterm"), opts)
+end
+
 ---@param opts kyme.Config
 function M.setup(opts)
 	require("kyme.core").setup(opts)

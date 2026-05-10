@@ -33,11 +33,13 @@ local function parse(stdout)
 	return tasks
 end
 
----@param spec kyme.ProviderSpec<kyme.SourceProvider>
+---@param opts? table
 ---@return kyme.SourceProvider
-function M.create(spec)
+function M.create(opts)
+	opts = opts or {}
+
 	return {
-		name = spec[1],
+		name = "mise",
 
 		---@param done fun(tasks: kyme.Task[])
 		collect = function(done)

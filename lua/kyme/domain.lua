@@ -46,12 +46,11 @@
 ---@field tasks kyme.Task[]
 
 ---@class kyme.ProviderModule<T>
----@field create fun(spec: kyme.ProviderSpec<T>): T
+---@field create fun(opts?: table): T
 
----@class kyme.ProviderSpec<T>
----@field [1] string
+---@class kyme.ProviderFactory<T>
+---@field module kyme.ProviderModule<T>
 ---@field opts? table
----@field module? string
 
 ---@class kyme.Execution
 ---@field id string
@@ -74,6 +73,6 @@
 ---@field stop? fun()
 
 ---@class kyme.Config
----@field sources kyme.ProviderSpec<kyme.SourceProvider>[]
----@field picker kyme.ProviderSpec<kyme.PickerProvider>?
----@field runner kyme.ProviderSpec<kyme.RunnerProvider>?
+---@field sources kyme.ProviderFactory<kyme.SourceProvider>[]
+---@field picker kyme.ProviderFactory<kyme.PickerProvider>?
+---@field runner kyme.ProviderFactory<kyme.RunnerProvider>?

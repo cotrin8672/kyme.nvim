@@ -269,13 +269,13 @@ local function execution_picker_source(executions, actions, opts)
 	}, opts.execution_picker or {})
 end
 
----@param spec kyme.ProviderSpec<kyme.PickerProvider>
+---@param opts? table
 ---@return kyme.PickerProvider
-function M.create(spec)
-	local opts = spec.opts or {}
+function M.create(opts)
+	opts = opts or {}
 
 	return {
-		name = spec[1],
+		name = "snacks",
 
 		---@param tasks kyme.Task[]
 		---@param done fun(result?: kyme.PickerResult)

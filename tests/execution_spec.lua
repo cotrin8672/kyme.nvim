@@ -1,5 +1,6 @@
 local h = require("tests.helpers")
 
+local kyme = require("kyme")
 local core = require("kyme.core")
 local executions = require("kyme.executions")
 local state = require("kyme.state")
@@ -47,6 +48,127 @@ local function with_vim_stubs(fn)
 end
 
 return {
+	{
+		name = "public built-in provider helpers return provider factories",
+		fn = function()
+			local source = kyme.mise({ source = true })
+			local picker = kyme.snacks({ picker = true })
+			local runner = kyme.toggleterm({ runner = true })
+
+			h.same(require("kyme.provider.source.mise"), source.module)
+			h.same({ source = true }, source.opts)
+			h.same(require("kyme.provider.picker.snacks"), picker.module)
+			h.same({ picker = true }, picker.opts)
+			h.same(require("kyme.provider.runner.toggleterm"), runner.module)
+			h.same({ runner = true }, runner.opts)
+		end,
+	},
+	{
+		name = "core.setup creates providers from factories",
+		fn = function()
+			reset_state()
+
+			local source_opts
+			local picker_opts
+			local runner_opts
+
+			local source_provider = {
+				name = "source",
+				collect = function(done)
+					done({})
+				end,
+			}
+			local picker_provider = {
+				name = "picker",
+				pick_task = function() end,
+			}
+			local runner_provider = {
+				name = "runner",
+				start = function() end,
+			}
+
+			core.setup({
+				sources = {
+					{
+						module = {
+							create = function(opts)
+								source_opts = opts
+								return source_provider
+							end,
+						},
+						opts = { source = true },
+					},
+				},
+				picker = {
+					module = {
+						create = function(opts)
+							picker_opts = opts
+							return picker_provider
+						end,
+					},
+					opts = { picker = true },
+				},
+				runner = {
+					module = {
+						create = function(opts)
+							runner_opts = opts
+							return runner_provider
+						end,
+					},
+					opts = { runner = true },
+				},
+			})
+
+			h.same({ source = true }, source_opts)
+			h.same({ picker = true }, picker_opts)
+			h.same({ runner = true }, runner_opts)
+			h.same({ source_provider }, state.sourceProviders)
+			h.same(picker_provider, state.pickerProvider)
+			h.same(runner_provider, state.runnerProvider)
+		end,
+	},
+	{
+		name = "core.setup replaces source providers",
+		fn = function()
+			reset_state()
+
+			local function setup_with(source)
+				core.setup({
+					sources = {
+						{
+							module = {
+								create = function()
+									return source
+								end,
+							},
+						},
+					},
+					picker = {
+						module = {
+							create = function()
+								return { name = "picker", pick_task = function() end }
+							end,
+						},
+					},
+					runner = {
+						module = {
+							create = function()
+								return { name = "runner", start = function() end }
+							end,
+						},
+					},
+				})
+			end
+
+			local first = { name = "first", collect = function() end }
+			local second = { name = "second", collect = function() end }
+
+			setup_with(first)
+			setup_with(second)
+
+			h.same({ second }, state.sourceProviders)
+		end,
+	},
 	{
 		name = "core.run registers a running execution and updates succeeded on exit",
 		fn = function()
