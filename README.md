@@ -94,7 +94,7 @@ end, { desc = 'Pick task' })
 
 ## Provider Model
 
-Kyme has three provider types.
+Kyme has four provider types.
 
 ### SourceProvider
 
@@ -102,7 +102,6 @@ A source collects tasks and returns them asynchronously.
 
 ```lua
 ---@class kyme.SourceProvider
----@field name string
 ---@field collect fun(done: fun(tasks: kyme.Task[]))
 ```
 
@@ -112,9 +111,20 @@ A picker selects one or more tasks.
 
 ```lua
 ---@class kyme.PickerProvider
----@field name string
----@field pick_task fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
----@field pick_execution? fun(executions: kyme.Execution[], actions: kyme.ExecutionPickerActions)
+---@field pick_task fun(items: kyme.PickerTaskItem[], done: fun(result?: kyme.PickerResult))
+---@field pick_execution? fun(items: kyme.PickerExecutionItem[], actions: kyme.ExecutionPickerActions)
+```
+
+### VisualProvider
+
+A visual provider converts tasks and executions into picker labels and previews.
+
+```lua
+---@class kyme.VisualProvider
+---@field task_item fun(task: kyme.Task): kyme.VisualItem
+---@field task_preview fun(task: kyme.Task): kyme.VisualPreview?
+---@field execution_item fun(execution: kyme.Execution): kyme.VisualItem
+---@field execution_preview fun(execution: kyme.Execution): kyme.VisualPreview?
 ```
 
 ### RunnerProvider
@@ -123,7 +133,6 @@ A runner executes a selected task.
 
 ```lua
 ---@class kyme.RunnerProvider
----@field name string
 ---@field start fun(task: kyme.Task, ctx: kyme.ExecutionCtx, hooks: kyme.RunnerHooks): kyme.ExecutionHandle
 ```
 
@@ -136,9 +145,6 @@ A runner executes a selected task.
 ---@field command string[] argv-style command
 ---@field desc? string
 ---@field source? kyme.TaskSource
----@field preview? kyme.TaskPreview
----@field tags? string[]
----@field metadata? table
 ```
 
 command is always argv-style. Providers should prefer structured commands like:
@@ -188,4 +194,3 @@ These items are still rough roadmap notes and may change as the plugin evolves.
 - Manage running tasks through the same provider-oriented model
 - Expand CI and automated test coverage
 - Add hooks for task lifecycle events such as start, completion, and failure
-- Split preview generation into a more independent provider interface
