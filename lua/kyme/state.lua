@@ -12,6 +12,9 @@ M.pickerProvider = nil
 ---@type kyme.RunnerProvider
 M.runnerProvider = nil
 
+---@type kyme.VisualProvider
+M.visualProvider = nil
+
 ---@type table<string, kyme.Execution>
 M.executions = {}
 

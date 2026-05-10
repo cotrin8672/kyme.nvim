@@ -1,4 +1,5 @@
 local h = require("tests.helpers")
+local visual = require("kyme.provider.visual.default").create()
 
 local function with_snacks_picker(fn)
 	local original_snacks = rawget(_G, "Snacks")
@@ -33,6 +34,22 @@ local function execution(id)
 	}
 end
 
+local function task_item(task)
+	return {
+		task = task,
+		visual = visual.task_item(task),
+		preview = visual.task_preview(task),
+	}
+end
+
+local function execution_item(item)
+	return {
+		execution = item,
+		visual = visual.execution_item(item),
+		preview = visual.execution_preview(item),
+	}
+end
+
 return {
 	{
 		name = "snacks picker prefixes mise tasks with icon",
@@ -41,14 +58,14 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
-					{
+					task_item({
 						id = "mise:build",
 						name = "build",
 						command = { "mise", "run", "build" },
 						source = {
 							provider = "mise",
 						},
-					},
+					}),
 				}, function() end)
 
 				h.same("󰦕 mise: build", captured().items[1].text)
@@ -62,15 +79,15 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
-					{
+					task_item({
 						id = "custom",
 						name = "custom",
 						command = { "echo", "custom" },
-					},
+					}),
 				}, function() end)
 
 				h.same("kyme_tasks", captured().source)
-				h.same("text", captured().format)
+				h.truthy(captured().format)
 				h.same("preview", captured().preview)
 				h.truthy(captured().confirm)
 			end)
@@ -83,14 +100,14 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
-					{
+					task_item({
 						id = "pnpm:test",
 						name = "test",
 						command = { "pnpm", "test" },
 						source = {
 							provider = "pnpm",
 						},
-					},
+					}),
 				}, function() end)
 
 				h.same("pnpm: test", captured().items[1].text)
@@ -104,11 +121,11 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_task({
-					{
+					task_item({
 						id = "custom",
 						name = "custom",
 						command = { "echo", "custom" },
-					},
+					}),
 				}, function() end)
 
 				h.same("custom", captured().items[1].text)
@@ -122,7 +139,7 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
-					{
+					execution_item({
 						id = "1",
 						status = "running",
 						task = {
@@ -133,14 +150,14 @@ return {
 								provider = "mise",
 							},
 						},
-					},
+					}),
 				}, {
 					open = function() end,
 					stop = function() end,
 				})
 
 				local item = captured().items[1]
-				h.same("#1 build", item.text)
+				h.same("\243\176\166\149 #1 build", item.text)
 				h.same({
 					{ "󰦕", "DiagnosticInfo" },
 					{ " " },
@@ -157,7 +174,7 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
-					execution("1"),
+					execution_item(execution("1")),
 				}, {
 					open = function() end,
 					stop = function() end,
@@ -178,7 +195,7 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
-					{
+					execution_item({
 						id = "1",
 						status = "succeeded",
 						task = {
@@ -187,8 +204,8 @@ return {
 							command = { "mise", "run", "ok" },
 							source = { provider = "mise" },
 						},
-					},
-					{
+					}),
+					execution_item({
 						id = "2",
 						status = "failed",
 						task = {
@@ -197,8 +214,8 @@ return {
 							command = { "mise", "run", "fail" },
 							source = { provider = "mise" },
 						},
-					},
-					{
+					}),
+					execution_item({
 						id = "3",
 						status = "stopped",
 						task = {
@@ -207,7 +224,7 @@ return {
 							command = { "mise", "run", "stop" },
 							source = { provider = "mise" },
 						},
-					},
+					}),
 				}, {
 					open = function() end,
 					stop = function() end,
@@ -227,11 +244,11 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
-					{
+					execution_item({
 						id = "1",
 						status = "running",
 						task = { id = "test:ok", name = "ok", command = { "echo", "ok" } },
-					},
+					}),
 				}, {
 					open = function() end,
 					stop = function() end,
@@ -253,11 +270,11 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
-					{
+					execution_item({
 						id = "1",
 						status = "running",
 						task = { id = "test:ok", name = "ok", command = { "echo", "ok" } },
-					},
+					}),
 				}, {
 					open = function() end,
 					stop = function() end,
@@ -278,9 +295,9 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
-					execution("1"),
-					execution("2"),
-					execution("3"),
+					execution_item(execution("1")),
+					execution_item(execution("2")),
+					execution_item(execution("3")),
 				}, {
 					open = function() end,
 					stop = function(execution_id)
@@ -309,8 +326,8 @@ return {
 
 			with_snacks_picker(function(captured)
 				provider.pick_execution({
-					execution("1"),
-					execution("2"),
+					execution_item(execution("1")),
+					execution_item(execution("2")),
 				}, {
 					open = function() end,
 					stop = function(execution_id)

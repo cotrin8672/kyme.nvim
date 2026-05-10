@@ -12,11 +12,6 @@ local function to_task(item)
 			provider = "mise",
 			path = item.source,
 		},
-		preview = {
-			lines = item.run,
-			ft = "sh",
-		},
-		metadata = item,
 	}
 end
 
@@ -39,8 +34,6 @@ function M.create(opts)
 	opts = opts or {}
 
 	return {
-		name = "mise",
-
 		---@param done fun(tasks: kyme.Task[])
 		collect = function(done)
 			vim.system({ "mise", "tasks", "--json" }, { text = true }, function(result)

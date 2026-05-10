@@ -12,8 +12,6 @@ function M.create(opts)
 	opts = opts or {}
 
 	return {
-		name = "toggleterm",
-
 		---@param task kyme.Task
 		---@param ctx kyme.ExecutionCtx
 		---@param hooks kyme.RunnerHooks

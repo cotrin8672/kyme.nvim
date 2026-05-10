@@ -5,6 +5,7 @@ local config = {
 	sources = {},
 	picker = nil,
 	runner = nil,
+	visual = nil,
 }
 
 function M.set(opts)
