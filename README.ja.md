@@ -96,7 +96,7 @@ end, { desc = 'Pick task' })
 
 ## Provider Model
 
-Kyme には 3 種類の provider があります。
+Kyme には 4 種類の provider があります。
 
 ### SourceProvider
 
@@ -104,7 +104,6 @@ source はタスクを非同期に収集します。
 
 ```lua
 ---@class kyme.SourceProvider
----@field name string
 ---@field collect fun(done: fun(tasks: kyme.Task[]))
 ```
 
@@ -114,9 +113,20 @@ picker は 1 つ以上のタスクを選択します。
 
 ```lua
 ---@class kyme.PickerProvider
----@field name string
----@field pick_task fun(tasks: kyme.Task[], done: fun(result?: kyme.PickerResult))
----@field pick_execution? fun(executions: kyme.Execution[], actions: kyme.ExecutionPickerActions)
+---@field pick_task fun(items: kyme.PickerTaskItem[], done: fun(result?: kyme.PickerResult))
+---@field pick_execution? fun(items: kyme.PickerExecutionItem[], actions: kyme.ExecutionPickerActions)
+```
+
+### VisualProvider
+
+visual provider は task / execution を picker の label と preview に変換します。
+
+```lua
+---@class kyme.VisualProvider
+---@field task_item fun(task: kyme.Task): kyme.VisualItem
+---@field task_preview fun(task: kyme.Task): kyme.VisualPreview?
+---@field execution_item fun(execution: kyme.Execution): kyme.VisualItem
+---@field execution_preview fun(execution: kyme.Execution): kyme.VisualPreview?
 ```
 
 ### RunnerProvider
@@ -125,7 +135,6 @@ runner は選択されたタスクを実行します。
 
 ```lua
 ---@class kyme.RunnerProvider
----@field name string
 ---@field start fun(task: kyme.Task, ctx: kyme.ExecutionCtx, hooks: kyme.RunnerHooks): kyme.ExecutionHandle
 ```
 
@@ -138,9 +147,6 @@ runner は選択されたタスクを実行します。
 ---@field command string[] argv-style command
 ---@field desc? string
 ---@field source? kyme.TaskSource
----@field preview? kyme.TaskPreview
----@field tags? string[]
----@field metadata? table
 ```
 
 `command` は常に argv 形式です。provider は shell string ではなく、次のような構造化された command を返すことを推奨します。
@@ -188,4 +194,3 @@ toggleterm.nvim を使って、terminal window を即座に開かずにタスク
 - 実行中タスクの管理も、現在の provider 指向のモデルと同じように扱えるようにする
 - CI と自動テストを拡充する
 - タスクの開始、完了、失敗などのライフサイクルイベントに対するフックを指定できるようにする
-- preview 生成を、より独立した provider interface として切り出す
