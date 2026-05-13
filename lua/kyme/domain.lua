@@ -39,10 +39,20 @@
 
 ---@class kyme.AdapterBase
 
+---@class kyme.SourceAdapter
+---@field collect fun(): kyme.Task[]
+
+---@class kyme.RunnerAdapter
+---@field run fun(task: kyme.Task, hooks: kyme.RunnerHooks): kyme.Execution
+
+---@class kyme.PickerAdapter
+---@field pick_task fun(tasks: kyme.Task[]): kyme.Task
+---@field pick_execution fun(executions: kyme.Execution[]): kyme.Execution
+
 ---@class kyme.ProviderBase
 
 ---@class kyme.SourceProvider: kyme.ProviderBase
----@field collect fun(done: fun(tasks: kyme.Task[]))
+---@field collect fun(): kyme.Task[]
 
 ---@class kyme.RunnerProvider: kyme.ProviderBase
 ---@field start fun(task: kyme.Task, ctx: kyme.ExecutionCtx, hooks: kyme.RunnerHooks): kyme.ExecutionHandle
